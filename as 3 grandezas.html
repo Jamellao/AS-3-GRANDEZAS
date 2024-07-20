@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AS 3 GRANDEZAS</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #F4F4F9; /* Cinza Claro */
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px; /* Largura um pouco maior */
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #FFFFFF; /* Branco */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra leve */
+        }
+        h1 {
+            text-align: center;
+            color: #1877F2; /* Azul Facebook */
+            text-transform: uppercase;
+            margin-bottom: 30px;
+        }
+        .section {
+            background-color: #FFFFFF;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #DDDDDD; /* Borda cinza claro */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra leve */
+        }
+        .section h2 {
+            color: #1877F2; /* Azul Facebook */
+            margin-bottom: 15px;
+            font-size: 20px; /* Tamanho de fonte ajustado */
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #DDDDDD;
+            font-size: 16px; /* Tamanho de fonte ajustado */
+        }
+        .btn {
+            background-color: #1877F2;
+            color: #FFFFFF;
+            border: none;
+            padding: 12px 25px; /* Ajuste do padding */
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .btn:hover {
+            background-color: #1557A0;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px; /* Aumentar padding para melhor leitura */
+            border-radius: 8px;
+            background-color: #FFFFFF;
+            border: 1px solid #DDDDDD;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra leve */
+        }
+        .valid {
+            color: #28A745;
+        }
+        .invalid {
+            color: #DC3545;
+        }
+        .suggestion {
+            font-style: italic;
+            color: #FF6F61;
+        }
+        .file-input {
+            display: none;
+        }
+        .instruction {
+            font-style: italic;
+            color: #888;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>AS 3 GRANDEZAS</h1>
+
+        <!-- Facebook -->
+        <div class="section">
+            <h2>Facebook - Tráfego (Objetivo: Conversão)</h2>
+            <div class="form-group">
+                <label for="cpm">CPM (Custo de Mil Visualizações):</label>
+                <input type="number" id="cpm" placeholder="Digite o CPM">
+            </div>
+            <div class="form-group">
+                <label for="cpv">CPV (Custo por Visualização de Página de Destino):</label>
+                <input type="number" id="cpv" placeholder="Digite o CPV">
+            </div>
+            <div class="form-group">
+                <label for="ctr">CTR (Taxa de Clique):</label>
+                <input type="number" id="ctr" placeholder="Digite o CTR">
+            </div>
+        </div>
+
+        <!-- Página de Vendas -->
+        <div class="section">
+            <h2>Página de Vendas</h2>
+            <div class="form-group">
+                <label for="ic_vendas">IC (Inicialização de Compra - Página de Vendas):</label>
+                <input type="number" id="ic_vendas" placeholder="Digite o IC para Página de Vendas">
+            </div>
+            <div class="form-group">
+                <label for="cpv_vendas">CPV (Custo por Visualização de Página de Vendas):</label>
+                <input type="number" id="cpv_vendas" placeholder="Digite o CPV para Página de Vendas">
+            </div>
+        </div>
+
+        <!-- Checkout -->
+        <div class="section">
+            <h2>Checkout</h2>
+            <div class="form-group">
+                <label for="ic_checkout">IC (Inicialização de Compra - Checkout):</label>
+                <input type="number" id="ic_checkout" placeholder="Digite o IC para Checkout">
+            </div>
+            <div class="form-group">
+                <label for="compras_checkout">Compras:</label>
+                <input type="number" id="compras_checkout" placeholder="Digite o número de Compras">
+            </div>
+        </div>
+
+        <!-- Resultados -->
+        <div class="section">
+            <h2>Resultados</h2>
+            <div id="resultados" class="result">
+                <p class="instruction">Digite as informações e clique em "Calcular Métricas" para ver os resultados.</p>
+            </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="section">
+            <button class="btn" onclick="calcularMetricas()">Calcular Métricas</button>
+            <button class="btn" onclick="carregarArquivo()">Carregar Arquivo</button>
+            <input type="file" id="fileInput" class="file-input" accept=".csv, .xlsx, .txt" onchange="processarArquivo(event)">
+        </div>
+    </div>
+
+    <script>
+        function calcularMetricas() {
+            const cpm = parseFloat(document.getElementById('cpm').value) || null;
+            const cpv = parseFloat(document.getElementById('cpv').value) || null;
+            const ctr = parseFloat(document.getElementById('ctr').value) || null;
+            const icVendas = parseFloat(document.getElementById('ic_vendas').value) || null;
+            const cpvVendas = parseFloat(document.getElementById('cpv_vendas').value) || null;
+            const icCheckout = parseFloat(document.getElementById('ic_checkout').value) || null;
+            const comprasCheckout = parseFloat(document.getElementById('compras_checkout').value) || null;
+
+            let resultadosDiv = document.getElementById('resultados');
+            resultadosDiv.innerHTML = '';
+
+            let resultado = '';
+            let metricasBoas = 0;
+
+            // Validação Facebook
+            if (cpm !== null) {
+                if (cpm <= 30) {
+                    resultado += '<p class="valid">CPM: MUITO BOM</p>';
+                    metricasBoas++;
+                } else {
+                    resultado += '<p class="invalid">CPM: Ruim</p>';
+                    resultado += '<p class="suggestion">Sugestão: Tente buscar um público com CPM menor ou igual a R$30.</p>';
+                }
+            } else {
+                resultado += '<p class="invalid">CPM: Não informado</p>';
+            }
+
+            if (cpv !== null) {
+                if (cpv <= 2) {
+                    resultado += '<p class="valid">CPV: MUITO BOM</p>';
+                    metricasBoas++;
+                } else {
+                    resultado += '<p class="invalid">CPV: Ruim</p>';
+                    resultado += '<p class="suggestion">Sugestão: Garanta que o CPV esteja abaixo de R$2.</p>';
+                }
+            } else {
+                resultado += '<p class="invalid">CPV: Não informado</p>';
+            }
+
+            if (ctr !== null) {
+                if (ctr >= 1) {
+                    resultado += '<p class="valid">CTR: MUITO BOM</p>';
+                    metricasBoas++;
+                } else {
+                    resultado += '<p class="invalid">CTR: Ruim</p>';
+                    resultado += '<p class="suggestion">Sugestão: Melhore o anúncio para aumentar o CTR.</p>';
+                }
+            } else {
+                resultado += '<p class="invalid">CTR: Não informado</p>';
+            }
+
+            // Validação Página de Vendas
+            if (icVendas !== null && cpvVendas !== null) {
+                const taxaInicializacao = (icVendas / cpvVendas) * 100;
+                if (taxaInicializacao >= 10) {
+                    resultado += `<p class="valid">Taxa de Inicialização de Compra: ${taxaInicializacao.toFixed(2)}%</p>`;
+                    metricasBoas++;
+                } else {
+                    resultado += `<p class="invalid">Taxa de Inicialização de Compra: ${taxaInicializacao.toFixed(2)}%</p>`;
+                    resultado += '<p class="suggestion">Sugestão: Verifique se a página de vendas está atraente para aumentar a taxa de inicialização.</p>';
+                }
+            } else {
+                resultado += '<p class="invalid">IC e CPV da Página de Vendas: Não informados</p>';
+            }
+
+            // Validação Checkout
+            if (icCheckout !== null && comprasCheckout !== null) {
+                const taxaConversao = (comprasCheckout / icCheckout) * 100;
+                if (taxaConversao >= 2) {
+                    resultado += `<p class="valid">Taxa de Conversão: ${taxaConversao.toFixed(2)}%</p>`;
+                    metricasBoas++;
+                } else {
+                    resultado += `<p class="invalid">Taxa de Conversão: ${taxaConversao.toFixed(2)}%</p>`;
+                    resultado += '<p class="suggestion">Sugestão: Melhore a página de checkout para aumentar a taxa de conversão.</p>';
+                }
+            } else {
+                resultado += '<p class="invalid">IC e Compras no Checkout: Não informados</p>';
+            }
+
+            if (metricasBoas === 0) {
+                resultado += '<p class="invalid">Nenhuma métrica está dentro do esperado.</p>';
+            } else if (metricasBoas === 3) {
+                resultado += '<p class="valid">Todas as métricas estão excelentes!</p>';
+            } else {
+                resultado += '<p class="suggestion">Algumas métricas estão boas, mas ainda há espaço para melhorias.</p>';
+            }
+
+            resultadosDiv.innerHTML = resultado;
+        }
+
+        function carregarArquivo() {
+            document.getElementById('fileInput').click();
+        }
+
+        function processarArquivo(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const fileName = file.name;
+                const fileExtension = fileName.split('.').pop().toLowerCase();
+
+                if (fileExtension === 'csv' || fileExtension === 'xlsx' || fileExtension === 'txt') {
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        const content = e.target.result;
+                        console.log('Conteúdo do Arquivo:', content);
+
+                        if (fileExtension === 'csv') {
+                            processarCSV(content);
+                        } else if (fileExtension === 'xlsx') {
+                            processarXLSX(content);
+                        } else if (fileExtension === 'txt') {
+                            processarTXT(content);
+                        }
+                    };
+
+                    reader.readAsBinaryString(file);
+                } else {
+                    alert('Por favor, selecione um arquivo CSV, XLSX ou TXT.');
+                }
+            }
+        }
+
+        function processarCSV(content) {
+            Papa.parse(content, {
+                header: true,
+                complete: function(results) {
+                    console.log('Dados CSV:', results.data);
+                    // Exemplo de processamento: ajustar conforme seu formato de dados
+                    // Aqui você pode extrair as métricas e atualizar o formulário ou resultados
+                },
+                error: function(error) {
+                    console.error('Erro ao processar CSV:', error);
+                }
+            });
+        }
+
+        function processarXLSX(content) {
+            const workbook = XLSX.read(content, { type: 'binary' });
+            workbook.SheetNames.forEach(function(sheetName) {
+                const sheet = workbook.Sheets[sheetName];
+                const data = XLSX.utils.sheet_to_json(sheet);
+                console.log('Dados XLSX:', data);
+                // Exemplo de processamento: ajustar conforme seu formato de dados
+                // Aqui você pode extrair as métricas e atualizar o formulário ou resultados
+            });
+        }
+
+        function processarTXT(content) {
+            // Exemplo básico de processamento: ajustar conforme o formato do seu arquivo TXT
+            const linhas = content.split('\n');
+            linhas.forEach(linha => {
+                console.log('Linha TXT:', linha);
+                // Aqui você pode processar cada linha do arquivo TXT conforme necessário
+            });
+        }
+    </script>
+</body>
+</html>
